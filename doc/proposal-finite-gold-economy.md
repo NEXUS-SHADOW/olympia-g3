@@ -92,6 +92,8 @@ Cities depend on specialization and dense exchange. Craftspeople often need payi
 5. A fraction of displaced people may become bandits or pillagers, especially where security and alternative employment are poor.
 6. The shrinking commercial base reduces tax revenues; insecurity further discourages trade and settlement.
 
+![Urban decline feedback loop: gold leaving a region reduces circulating currency, trade and wages; workers emigrate, peasants return to subsistence, and banditry rises, so the city loses productive capacity, which lowers tax revenue and the ruler's ability to maintain security.](proposal-finite-gold-economy.png)
+
 These are **possible behavioral responses**, not automatic transformations. Poverty alone should not turn every peasant into a bandit. Land access, food supply, governance, security, alternative employment, and migration routes should matter.
 
 Recovery should likewise be possible. A ruler's investments in security, roads, construction, market access, local purchases, and reliable wages can attract people and restore commerce. Spending money *outside* the region would yield less local stimulus than spending it locally.
