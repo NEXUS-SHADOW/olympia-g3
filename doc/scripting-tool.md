@@ -200,7 +200,8 @@ oly.add_player{                  -- replaces Join-g3 + the -a pass
     start     = 0,               -- index into startloc, or "empty"
     email     = "pillager@example.com",
     full_name = "P Layer One",
-}                                -- returns {player=<h>, noble=<h>}
+}                                -- returns {player=<h>, noble=<h>,
+                                 --          unformed={<id>, ...}}
 ```
 
 `add_player` wraps `add_new_player()` (`add.c:162`) directly — *not* the
@@ -608,6 +609,10 @@ as a script**, to validate the approach before committing to the full surface:
 the registry), and `oly.restart()`, which emulates a fresh engine process
 (mint stream restarted, GM active again, a just-saved `save` left running) so
 `move-ship.lua` can match the multi-process `move-ship/build-scenario.sh`.
+
+**Since landed (#127):** `oly.add_player` also returns `unformed`, the
+faction's unformed noble ids in FORM order, and `oly.garrison(where)` returns
+the garrison guarding `where` (seeded by `oly.load`), or nil.
 
 **Explicitly deferred:** `kill`, `credit`, the full query set
 (`here`/`all`/`chars_here`/`knows`), the declarative format, RNG bindings, and

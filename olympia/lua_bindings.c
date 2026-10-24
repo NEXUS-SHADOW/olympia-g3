@@ -20,7 +20,9 @@
  *  Prototype surface (doc §9): load, extract_startlocs, add_player, poof,
  *  additem, guard, order, save, plus the loc/has_item query reads and the
  *  name/id registry. subitem, know, makeloc and restart followed for the
- *  move-ship fixture (issue #120). Everything else in the design (kill, credit, the
+ *  move-ship fixture (issue #120); add_player's `unformed` list for the
+ *  inventory-give fixture and the garrison query for inventory-refused
+ *  (issue #127). Everything else in the design (kill, credit, the
  *  wider query set, the declarative format, RNG bindings) is deferred; a
  *  binding is added when a fixture needs it, not speculatively.
  */
@@ -257,7 +259,8 @@ l_extract_startlocs(lua_State *L)
 
 /*
  *  oly.add_player{ id=, faction=, noble=, noble_name=, start=, full_name=,
- *                  email=, name= }  -> { player = <id>, noble = <id> }
+ *                  email=, name= }
+ *      -> { player = <id>, noble = <id>, unformed = { <id>, ... } }
  *
  *  The scripted replacement for guard-pillage steps 3-5 (doc §1.4): mint one
  *  regular faction + starting noble. `id` is the explicit faction box id
@@ -265,12 +268,15 @@ l_extract_startlocs(lua_State *L)
  *  allocation, doc §3.2). The noble is minted by the engine's new_ent() inside
  *  add_new_player(), and its id is captured into the registry under the
  *  author's `noble` handle -- killing the awk id-recovery step. `name` (the
- *  player handle) is bound too when present.
+ *  player handle) is bound too when present. `unformed` lists the faction's
+ *  unformed noble ids in FORM order, so an order can name a noble the turn
+ *  forms (issue #127).
  */
 static int
 l_add_player(lua_State *L)
 {
-	int id, noble;
+	int id, noble, i;
+	struct entity_player *p;
 	char *faction, *noble_handle, *noble_name, *start;
 	char *full_name, *email, *pname;
 
@@ -309,6 +315,15 @@ l_add_player(lua_State *L)
 	lua_setfield(L, -2, "player");
 	lua_pushinteger(L, noble);
 	lua_setfield(L, -2, "noble");
+
+	p = p_player(id);
+	lua_newtable(L);
+	for (i = 0; i < ilist_len(p->unformed); i++)
+	{
+		lua_pushinteger(L, p->unformed[i]);
+		lua_rawseti(L, -2, i + 1);
+	}
+	lua_setfield(L, -2, "unformed");
 
 	return 1;
 }
@@ -512,6 +527,27 @@ l_has_item(lua_State *L)
 	return 1;
 }
 
+/*
+ *  oly.garrison(where)  -- query: the garrison guarding where, or nil.
+ *  load_db() has already seeded the city garrisons (seed_phase_two).
+ */
+static int
+l_garrison(lua_State *L)
+{
+	int where = (int) luaL_checkinteger(L, 1);
+	int garr;
+
+	if (!valid_box(where))
+		return luaL_error(L, "oly.garrison: %d not a valid box", where);
+
+	garr = garrison_here(where);
+	if (garr == 0)
+		lua_pushnil(L);
+	else
+		lua_pushinteger(L, garr);
+	return 1;
+}
+
 /* oly.id("grok")  -- resolve a registry name to its id (error if unbound). */
 static int
 l_id(lua_State *L)
@@ -560,6 +596,7 @@ static const luaL_Reg oly_funcs[] = {
 	{ "restart",		l_restart },
 	{ "loc",		l_loc },
 	{ "has_item",		l_has_item },
+	{ "garrison",		l_garrison },
 	{ "id",			l_id },
 	{ "name",		l_name },
 	{ NULL,			NULL }
