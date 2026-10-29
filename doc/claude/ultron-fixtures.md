@@ -70,7 +70,22 @@ neither of its `fail` cells is reachable; group 9 (items; #218) by
 `oly.potion`, `oly.orb`, `oly.ring`, `oly.palantir` and `oly.relic`
 bindings; and group 10 (the shared `v_use`/`v_use_item` checks and the
 `v_implicit` skills; #224) by `use-checks`. With it no use-backlog cell is
-`todo`.
+`todo`. `use-quick-cast` (#362) pins `use 997`–`999` (in `use_tbl`, but no
+skill box exists, so they fail as invalid) and the cast speedup a quick_cast
+potion gives.
+
+**STOP on running orders (#361).** `stop-running` interrupts collect, make,
+repair, sail and `use 601` orders an earlier turn left running. A STOP acts
+only on day 0, on such an order, so its `build-scenario.sh` runs a real turn
+between two Lua scripts and freezes the lib whole as `scenario.tgz`.
+
+**Missing arguments (#366).** A unit's parse vector keeps its slots between
+orders, so a slot past an order's last word is NULL or points into a freed
+line. `missing-argument` pins the turn orders that read one (a bare
+`attack` crashed the turn), and `gm-immediate-missing` the GM console
+commands; it is the first fixture to run `olympia-g3 -i`. A unit's saved
+command (`li` in its `CO` section) is parsed again at load, so a Lua-built
+noble's slots hold the last command the script ran as it.
 
 The harness to work through it is in place
 ([doc/ultron-harness-architecture.md §7](../ultron-harness-architecture.md#7-first-cut-scope-proposed)):
